@@ -1,10 +1,7 @@
 import re, math, collections, itertools, os
-import nltk, nltk.classify.util, nltk.metrics
+import nltk, nltk.classify.util
 import pickle
 from nltk.classify import NaiveBayesClassifier
-from nltk.metrics import BigramAssocMeasures
-from nltk.probability import FreqDist, ConditionalFreqDist
-
 
 POLARITY_DATA_DIR = os.path.join('polarityData', 'rt-polaritydata')
 RT_POLARITY_POS_FILE = os.path.join(POLARITY_DATA_DIR, 'rt-polarity-pos.txt')
