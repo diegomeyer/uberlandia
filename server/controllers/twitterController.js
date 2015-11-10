@@ -20,7 +20,7 @@ exports.list = function (request, callBack) {
 
 var twitterSearch = function(query, callBack){
 
-	client.get('search/tweets', {q: query, geocode:'-14.3204892,-41.676742,2500km'}, function(error, tweets, response){
+	client.get('search/tweets', {q: query, count:100, geocode:'-14.3204892,-41.676742,2500km'}, function(error, tweets, response){
 		if (!error) {
 			callBack(tweets);
 		}else{
