@@ -3,6 +3,7 @@ import nltk, nltk.classify.util
 from nltk.classify import NaiveBayesClassifier
 import pickle
 import json
+import sys
 
 def load_dict(name):
 	objs = dict()
@@ -16,27 +17,28 @@ def load_dict(name):
 	return objs
 
 def load_tweets():
-	with open('tweets.json') as tt:    
-    		data = json.load(tt)
 
-    	testSentences = []
+    	data = json.loads(sys.argv[1])
 
-    	for i in data["tweets"]:
-		testSentences.append(i["text"])
+     	testSentences = []
+
+     	for i in data["tweets"]:
+	 	testSentences.append(i["text"])
 
 	return testSentences, data
 
 def save_json(data):
 	with open('data.json', 'w') as outfile:
     		json.dump(data, outfile)
+    	outfile.close()
 
 def classifyTweets(feature_select):
 
 	testSentences, data = load_tweets()
 
-	f = open('obj/classifier.pickle', 'rb')
-	classifier = pickle.load(f)
-	f.close()
+	bayes = open('obj/classifier.pickle', 'rb')
+	classifier = pickle.load(bayes)
+	bayes.close()
 
 	j = 0
 
@@ -48,6 +50,7 @@ def classifyTweets(feature_select):
 		j += 1
 
 	#print data
+	print json.dumps(data)
 	save_json(data)
 
 feature_select = load_dict('dict')
