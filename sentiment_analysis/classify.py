@@ -48,6 +48,7 @@ def classifyTweets(feature_select):
 		j += 1
 
 	#print data
+	print json.dumps(data)
 	save_json(data)
 
 feature_select = load_dict('dict')
