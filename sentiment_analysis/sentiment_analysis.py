@@ -43,7 +43,7 @@ def evaluate_features(feature_select):
 	#trains a Naive Bayes Classifier
 	classifier = NaiveBayesClassifier.train(trainFeatures)	
 
-	bayes = open('obj/' + 'classifier.pickle', 'wb')
+	bayes = open('obj/' + 'classifier.pkl', 'wb')
 	pickle.dump(classifier, bayes)
 	bayes.close()
 

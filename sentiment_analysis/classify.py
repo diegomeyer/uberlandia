@@ -36,7 +36,7 @@ def classifyTweets(feature_select):
 
 	testSentences, data = load_tweets()
 
-	bayes = open('obj/classifier.pickle', 'rb')
+	bayes = open('obj/classifier.pkl', 'rb')
 	classifier = pickle.load(bayes)
 	bayes.close()
 
