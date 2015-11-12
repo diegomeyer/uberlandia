@@ -30,14 +30,15 @@ def load_tweets():
 def save_json(data):
 	with open('data.json', 'w') as outfile:
     		json.dump(data, outfile)
+    	outfile.close()
 
 def classifyTweets(feature_select):
 
 	testSentences, data = load_tweets()
 
-	f = open('obj/classifier.pickle', 'rb')
-	classifier = pickle.load(f)
-	f.close()
+	bayes = open('obj/classifier.pickle', 'rb')
+	classifier = pickle.load(bayes)
+	bayes.close()
 
 	j = 0
 
