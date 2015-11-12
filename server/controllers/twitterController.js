@@ -1,5 +1,5 @@
 var url = require('url');
-
+var Tweet = require('../models/tweet');
 var Twitter = require('twitter');
 
 var client = new Twitter({
