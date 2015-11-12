@@ -9,7 +9,7 @@ var router = express.Router();
 router.get('/:query', function(req, res, next) {
 
 	twitterController.list(req, function(response){
-		python();
+
 		var options = {
 			noColor: false
 		};
@@ -17,7 +17,7 @@ router.get('/:query', function(req, res, next) {
 
 		var string = "<p><b>Assunto:</b>"+req.params.query+ "<br>"+response.length+" resultados georeferenciados";
 		for(var i = 0; i < response.length; i ++){
-			string += "</p><p><b>texto:</b> "+response[i].text+"<br><b>data:</b> "+ response[i].created_at+"<br><b>coordenadas:</b> " + response[i].coordinates
+			string += "</p><p><b>texto:</b> "+response[i].text+"<br><b>data:</b> "+ response[i].created_at+"<br><b>coordenadas:</b> " + response[i].coordinates+"<br><b>pontuação:</b> " + response[i].score +"<br><b>classificação:</b> " + response[i].class;
 		};
 
 		res.send(string);
@@ -28,11 +28,10 @@ router.get('/:query', function(req, res, next) {
 var python = function() {
 
 	PythonShell.defaultOptions  = {
-		scriptPath: path.join(__dirname, 'scripts'),
-		args: ['value1', 'value2', 'value3']
+		scriptPath: path.join(__dirname, 'scripts')
 	};
 
-	PythonShell.run('test.py', function(err, result){
+	PythonShell.run('classify.py', function(err, result){
 		if (err) throw err;
 		//var json = JSON.parse(result);
 		console.log(result);

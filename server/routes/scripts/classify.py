@@ -1,54 +1,60 @@
 import re, math
 import nltk, nltk.classify.util
 from nltk.classify import NaiveBayesClassifier
-import pickle
+import cPickle as pickle
 import json
+import os
+import copy_reg
+
 
 def load_dict(name):
-	objs = dict()
-	with open('obj/' + name + '.pkl', 'rb') as f:
-		while 1:
-			try:
-				objs.update(pickle.load(f))
-			except EOFError:
-				break
-	f.close()
-	return objs
+    relativepath = "obj/" + name + ".pkl"
+    objs = dict()
+    objs = pickle.load(open(os.path.abspath(relativepath), 'rb'))
+
+    return objs
+
 
 def load_tweets():
-	with open('tweets.json') as tt:    
-    		data = json.load(tt)
+    with open('tweets.json') as tt:
+        data = json.load(tt)
 
-    	testSentences = []
+    testSentences = []
 
-    	for i in data["tweets"]:
-		testSentences.append(i["text"])
+    for i in data["tweets"]:
+        testSentences.append(i["text"])
 
-	return testSentences, data
+    return testSentences, data
+
 
 def save_json(data):
-	with open('data.json', 'w') as outfile:
-    		json.dump(data, outfile)
+    with open('data.json', 'w') as outfile:
+        json.dump(data, outfile)
+
+    outfile.close()
+
 
 def classifyTweets(feature_select):
+    testSentences, data = load_tweets()
 
-	testSentences, data = load_tweets()
+    with open('tweets.json') as tt:
+        classifier = json.load(tt)
+    classifier = pickle.loads(os.path.abspath('obj/classifier.pickle'))
 
-	f = open('obj/classifier.pickle', 'rb')
-	classifier = pickle.load(f)
-	f.close()
 
-	j = 0
+    j = 0
 
-	for i in testSentences:
-	 	testSentences = re.findall(r"[\w']+|[.,!?;]", i.rstrip())
-		testFeatures = {word: (word in testSentences) for word in feature_select}
-		predicted = classifier.classify(testFeatures)
-		data["tweets"][j]["sentiment"] = predicted
-		j += 1
+    for i in testSentences:
+        testSentences = re.findall(r"[\w']+|[.,!?;]", i.rstrip())
+        testFeatures = {word: (word in testSentences) for word in feature_select}
+        predicted = classifier.classify(testFeatures)
+        data["tweets"][j]["sentiment"] = predicted
+        j += 1
 
-	#print data
-	save_json(data)
+    # print data
+    print json.dumps(data)
+    save_json(data)
+
 
 feature_select = load_dict('dict')
 classifyTweets(feature_select)
