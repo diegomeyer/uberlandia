@@ -5,4 +5,4 @@ Sistema que permite que o usuário consulte a aceptibilidade de um determinado a
 
 ## Wiki
 
-* Dicas de instalação e links interessantes se encontram na Wiki
+* Dicas de instalação e links interessantes se encontram na [Wiki](https://github.com/diegomeyer/uberlandia/wiki)
