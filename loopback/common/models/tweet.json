@@ -1,0 +1,51 @@
+{
+  "name": "Tweet",
+  "base": "PersistedModel",
+  "strict": false,
+  "idInjection": false,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "texto": {
+      "type": "string",
+      "required": true
+    },
+    "data": {
+      "type": "string",
+      "id": true,
+      "required": true
+    },
+    "classificao": {
+      "type": "number",
+      "required": true
+    },
+    "cidade": {
+      "type": "string"
+    },
+    "coordenadas": {
+      "type": [
+        "number"
+      ],
+      "required": true
+    },
+    "estado": {
+      "type": "string",
+      "required": true
+    },
+    "foto": {
+      "type": "string",
+      "required": false
+    }
+  },
+  "validations": [],
+  "relations": {
+    "local": {
+      "type": "hasOne",
+      "model": "Local",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
