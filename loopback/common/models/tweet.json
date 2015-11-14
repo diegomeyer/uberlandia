@@ -16,18 +16,8 @@
       "id": true,
       "required": true
     },
-    "classificao": {
-      "type": "number",
-      "required": true
-    },
     "cidade": {
       "type": "string"
-    },
-    "coordenadas": {
-      "type": [
-        "number"
-      ],
-      "required": true
     },
     "estado": {
       "type": "string",
@@ -36,6 +26,16 @@
     "foto": {
       "type": "string",
       "required": false
+    },
+    "classificao": {
+      "type": "number",
+      "required": true
+    },
+    "coordenadas": {
+      "type": [
+        "string"
+      ],
+      "required": true
     }
   },
   "validations": [],
