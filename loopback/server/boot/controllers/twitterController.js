@@ -1,6 +1,8 @@
 var url = require('url');
 var sentiment = require('sentiment')
 var Twitter = require('twitter');
+var brasil = require('./brasil');
+var geolib = require('geolib');
 
 var destruir = "";
 
@@ -14,9 +16,10 @@ var client = new Twitter({
 exports.list = function (request, callBack) {
 	var query = request.params.query;
 	var array = [];
-	twitterSearch(query, function(response){
-		callBack(filterJSON(response));
-	});
+	searchState();
+	// twitterSearch(query, function(response){
+	// 	callBack(filterJSON(response));
+	// });
 }
 
 
@@ -24,8 +27,8 @@ var twitterSearch = function(query, callBack){
 
 	client.get('search/tweets', {q: query, count:100, geocode:'-14.3204892,-41.676742,2500km'}, function(error, tweets, response){
 		if (!error) {
-			twitterStream(query);
-			destruir = true;
+			// twitterStream(query);
+
 			callBack(tweets);
 		}else{
 			console.log(error);
@@ -86,7 +89,10 @@ var filterJSON = function (json) {
 		if (tweet.coordinates !== null) {
 			var classifier = sentiment(tweet.text);
 			var score = classifier.score;
+			searchState(tweet.coordinates.coordinates, function(resp){
 
+			});
+			break;
 			filteredArray.push(
 				{
 					"text":tweet.text,
@@ -124,4 +130,38 @@ var classify = function(score) {
 	}
 	return '<label style="color:green">positivo</label>';
 
+}
+
+var searchState = function(coordinates, callBack){
+
+	var estado = brasil.geojson().features[0].geometry.coordinates[0][0];
+	var geolibArray = convertCoordinates(estado);
+
+	console.dir(geolib.isPointInside(
+    {latitude: -70.7358431, longitude:-8.8714882 },
+    geolibArray
+));
+	//console.dir(inside([ -9.5,-69.4], estado));
+
+	  // var polygon = [ [ 0, 3 ], [ 2, 2 ], [ 2, -2], [ 0, -3], [ -2, -2], [ -2, 2] ];
+     
+   //   console.dir([
+   //       inside([ -1, -1 ], polygon),
+   //       inside([ 0, 0 ], polygon),
+   //       inside([ 1.8, 1.1 ], polygon)
+   //   ]);
+
+	//console.dir(estado);
+}
+
+var convertCoordinates = function(coordArray){
+	geolibArray = []
+	for(var i = 0; i < coordArray.length; i ++){
+		point = coordArray[i];
+		geolibArray.push({latitude: parseFloat(point[0]), longitude: parseFloat(point[1])})
+	}
+
+	console.dir(geolibArray);
+
+	return geolibArray;
 }
