@@ -138,20 +138,9 @@ var searchState = function(coordinates, callBack){
 	var geolibArray = convertCoordinates(estado);
 
 	console.dir(geolib.isPointInside(
-    {latitude: -70.7358431, longitude:-8.8714882 },
-    geolibArray
-));
-	//console.dir(inside([ -9.5,-69.4], estado));
-
-	  // var polygon = [ [ 0, 3 ], [ 2, 2 ], [ 2, -2], [ 0, -3], [ -2, -2], [ -2, 2] ];
-     
-   //   console.dir([
-   //       inside([ -1, -1 ], polygon),
-   //       inside([ 0, 0 ], polygon),
-   //       inside([ 1.8, 1.1 ], polygon)
-   //   ]);
-
-	//console.dir(estado);
+	   	{latitude: -70.7358431, longitude:-8.8714882 },
+		geolibArray
+	));
 }
 
 var convertCoordinates = function(coordArray){
