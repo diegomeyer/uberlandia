@@ -1,9 +1,13 @@
 var url = require('url');
 var sentiment = require('sentiment')
 var Twitter = require('twitter');
-var brasil = require('./brasil');
+var brasil = require('./brasil-reduzido');
 var geolib = require('geolib');
 
+var geojson = brasil.geojson();
+var minScore = 0;
+var maxScore = 0;
+var scores = [];
 var destruir = "";
 
 var client = new Twitter({
@@ -18,7 +22,15 @@ exports.list = function (request, callBack) {
 	var array = [];
 
 	 twitterSearch(query, function(response){
-	 	callBack({data:filterJSON(response), geojson:brasil});
+	 	callBack(
+	 	{
+	 		data:filterJSON(response), 
+	 		estados:scores,
+	 		escala: {
+	 			min: minScore,
+	 			max: maxScore
+	 		}
+	 	});
 	 });
 }
 
@@ -82,7 +94,7 @@ var filterJSON = function (json) {
 		}
 	}
 
-
+	scores = [];
 	for(var i = 0; i < json.statuses.length; i++){
 		var tweet = json.statuses[i];
 
@@ -134,21 +146,51 @@ var classify = function(score) {
 
 var searchState = function(coordinates, callBack){
 
-	var estados = brasil.geojson().features;
+	var estados = geojson.features;
 
 	for (var i = 0; i < estados.length; i ++) {
-		var estado = estados[i];
-		var estadoCoord = estado.geometry.coordinates[0][0];
-		var geolibArray = convertCoordinates(estadoCoord);
 
+		var estado = estados[i];
+		var estadoCoord = estado.geometry.coordinates[0];
+		var geolibArray = convertCoordinates(estadoCoord);
 		var isInside = geolib.isPointInside( {latitude: coordinates[0], longitude:coordinates[1] },geolibArray);
 		if (isInside) {
-			estado.properties.score++;
-			brasil.geojson().features[i] = estado;
-			console.dir(estado.properties.name, estado.properties.score);
+			if (i === 0) {
+				minScore = estado.properties.score;
+			};
+			estado.properties.score ++;
+			if (estado.properties.score < minScore) {
+				minScore = estado.properties.score;
+			}
+
+			if (estado.properties.score > maxScore) {
+				maxScore = estado.properties.score;
+			}
+
+			updateScores(estado.properties.name, estado.properties.score);
+			
 			callBack(estado.properties.name);
 			break;
 		}
+	}
+	
+
+}
+
+var updateScores = function(estado, score){
+	var alreadyExists = false;
+	for (var i = 0; i < scores.length; i++) {
+		if (scores[i].estado === estado) {
+			scores[i].score = score;
+			alreadyExists = true;
+			break;
+		}	
+	}
+	if (!alreadyExists) {
+		scores.push({
+				estado: estado,
+				score: score
+			});
 	}
 	
 
