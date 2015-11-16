@@ -16,10 +16,10 @@ var client = new Twitter({
 exports.list = function (request, callBack) {
 	var query = request.params.query;
 	var array = [];
-	searchState();
-	// twitterSearch(query, function(response){
-	// 	callBack(filterJSON(response));
-	// });
+
+	 twitterSearch(query, function(response){
+	 	callBack({data:filterJSON(response), geojson:brasil});
+	 });
 }
 
 
@@ -90,18 +90,18 @@ var filterJSON = function (json) {
 			var classifier = sentiment(tweet.text);
 			var score = classifier.score;
 			searchState(tweet.coordinates.coordinates, function(resp){
-
+				filteredArray.push(
+					{
+						"text":tweet.text,
+						"created_at":tweet.created_at,
+						"coordinates":tweet.coordinates.coordinates,
+						"score": classifier.comparative,
+						"classe": classify(score),
+						"estado": resp
+					}
+				);
 			});
-			break;
-			filteredArray.push(
-				{
-					"text":tweet.text,
-					"created_at":tweet.created_at,
-					"coordinates":tweet.coordinates.coordinates,
-					"score": classifier.comparative,
-					"class": classify(score)
-				}
-			);
+			
 		}
 	}
 
@@ -134,13 +134,24 @@ var classify = function(score) {
 
 var searchState = function(coordinates, callBack){
 
-	var estado = brasil.geojson().features[0].geometry.coordinates[0][0];
-	var geolibArray = convertCoordinates(estado);
+	var estados = brasil.geojson().features;
 
-	console.dir(geolib.isPointInside(
-	   	{latitude: -70.7358431, longitude:-8.8714882 },
-		geolibArray
-	));
+	for (var i = 0; i < estados.length; i ++) {
+		var estado = estados[i];
+		var estadoCoord = estado.geometry.coordinates[0][0];
+		var geolibArray = convertCoordinates(estadoCoord);
+
+		var isInside = geolib.isPointInside( {latitude: coordinates[0], longitude:coordinates[1] },geolibArray);
+		if (isInside) {
+			estado.properties.score++;
+			brasil.geojson().features[i] = estado;
+			console.dir(estado.properties.name, estado.properties.score);
+			callBack(estado.properties.name);
+			break;
+		}
+	}
+	
+
 }
 
 var convertCoordinates = function(coordArray){
@@ -149,8 +160,6 @@ var convertCoordinates = function(coordArray){
 		point = coordArray[i];
 		geolibArray.push({latitude: parseFloat(point[0]), longitude: parseFloat(point[1])})
 	}
-
-	console.dir(geolibArray);
 
 	return geolibArray;
 }

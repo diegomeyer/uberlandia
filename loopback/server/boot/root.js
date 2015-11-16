@@ -11,18 +11,7 @@ module.exports = function(server) {
   router.get('/twitter/:query', function(req, res) {
 
     twitterController.list(req, function(response){
-
-      var options = {
-        noColor: false
-      };
-      //console.log(prettyjson.render(response, options));
-
-      var string = "<p><b>Assunto:</b>"+req.params.query+ "<br>"+response.length+" resultados georeferenciados";
-      for(var i = 0; i < response.length; i ++){
-        string += "</p><p><b>texto:</b> "+response[i].text+"<br><b>data:</b> "+ response[i].created_at+"<br><b>coordenadas:</b> " + response[i].coordinates+"<br><b>pontuação:</b> " + response[i].score +"<br><b>classificação:</b> " + response[i].class;
-      };
-
-      res.send(string);
+      res.send(response);
     });
 
 
