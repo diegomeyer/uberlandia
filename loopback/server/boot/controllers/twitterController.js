@@ -3,12 +3,14 @@ var sentiment = require('sentiment')
 var Twitter = require('twitter');
 var brasil = require('./brasil-reduzido');
 var geolib = require('geolib');
+var google = require('google-images');
 
 var geojson = brasil.geojson();
 var minScore = 0;
 var maxScore = 0;
 var scores = [];
 var destruir = "";
+var imageTheme = "";
 
 var client = new Twitter({
   consumer_key: 'DdxyopTagiCxG3Je2SBQgzQj0',
@@ -26,6 +28,7 @@ exports.list = function (request, callBack) {
 	 	{
 	 		data:filterJSON(response), 
 	 		estados:scores,
+	 		image:imageTheme,
 	 		escala: {
 	 			min: minScore,
 	 			max: maxScore
@@ -40,8 +43,12 @@ var twitterSearch = function(query, callBack){
 	client.get('search/tweets', {q: query, count:100, geocode:'-14.3204892,-41.676742,2500km'}, function(error, tweets, response){
 		if (!error) {
 			// twitterStream(query);
+			searchImage(query, function(image){
+				console.dir(image.url);
+				imageTheme = image.url;
+				callBack(tweets);
+			});
 
-			callBack(tweets);
 		}else{
 			console.log(error);
 		}
@@ -77,48 +84,70 @@ var filterJSON = function (json) {
 	debugger;
 	var min = 0;
 	var max = 0;
+
+
 	for(var i = 0; i < json.statuses.length; i++){
 		var tweet = json.statuses[i];
-
-		if (tweet.coordinates !== null) {
-			var classifier = sentiment(tweet.text);
-			console.dir(classifier);
-			var score = classifier.score;
-			if (score > max) {
-				max = score;
-			}
-
-			if (score < min) {
-				min = score;
-			};
-		}
-	}
-
-	scores = [];
-	for(var i = 0; i < json.statuses.length; i++){
-		var tweet = json.statuses[i];
-
+		
 		if (tweet.coordinates !== null) {
 			var classifier = sentiment(tweet.text);
 			var score = classifier.score;
-			searchState(tweet.coordinates.coordinates, function(resp){
-				filteredArray.push(
-					{
-						"text":tweet.text,
-						"created_at":tweet.created_at,
-						"coordinates":tweet.coordinates.coordinates,
-						"score": classifier.comparative,
-						"classe": classify(score),
-						"estado": resp
+
+			var place = tweet.place;
+			if (place !== null && place.country_code === 'BR') {
+				var fullName = place.full_name;
+				var cityState = fullName.split(/, (.+)?/);
+
+				
+
+				if (cityState[1] !== undefined) {
+					var state = normalizePlace(cityState[1]);
+					var city = normalizePlace(cityState[0]);
+					if (state === 'Brazil' || state === 'Brasil') {
+						state = city;
 					}
-				);
-			});
-			
+
+					filteredArray.push(
+						{
+							"text":tweet.text,
+							"created_at":tweet.created_at,
+							"image": tweet.user.profile_image_url,
+							"score": classifier.comparative,
+							"classe": classify(score),
+							"place": {
+								"state": state
+							}
+						}
+					);
+				}
+
+				
+			}
 		}
 	}
-
+	processScore(filteredArray);
 	return filteredArray;
 
+}
+
+var searchImage = function(image, callBack){
+	google.search(image , function(err, images){
+		if(!err){
+			callBack(images[0]);
+		}else{
+			callBack("");
+		}
+	});
+
+}
+
+var processScore = function(tweets){
+	scores = [];
+	for (var i = 0; i < tweets.length; i++) {
+		var state = tweets[i].place.state;
+		var score = tweets[i].classe;
+		updateScores(state,score);
+	};
 }
 
 var normalizeScore = function(max, min, score){
@@ -137,59 +166,40 @@ var normalizeScore = function(max, min, score){
 
 var classify = function(score) {
 	if (score <= 0) {
-		return '<label style="color:red">negativo</label>';
+		return 'negativo';
 
 	}
-	return '<label style="color:green">positivo</label>';
+	return 'positivo';
 
 }
 
-var searchState = function(coordinates, callBack){
 
-	var estados = geojson.features;
 
-	for (var i = 0; i < estados.length; i ++) {
-
-		var estado = estados[i];
-		var estadoCoord = estado.geometry.coordinates[0];
-		var geolibArray = convertCoordinates(estadoCoord);
-		var isInside = geolib.isPointInside( {latitude: coordinates[0], longitude:coordinates[1] },geolibArray);
-		if (isInside) {
-			if (i === 0) {
-				minScore = estado.properties.score;
-			};
-			estado.properties.score ++;
-			if (estado.properties.score < minScore) {
-				minScore = estado.properties.score;
-			}
-
-			if (estado.properties.score > maxScore) {
-				maxScore = estado.properties.score;
-			}
-
-			updateScores(estado.properties.name, estado.properties.score);
-			
-			callBack(estado.properties.name);
-			break;
-		}
-	}
-	
-
-}
-
-var updateScores = function(estado, score){
+var updateScores = function(estado, classe){
 	var alreadyExists = false;
 	for (var i = 0; i < scores.length; i++) {
 		if (scores[i].estado === estado) {
-			scores[i].score = score;
+			if (classe === 'positivo') {
+				scores[i].positivos ++;
+			}else{
+				scores[i].negativos ++;
+			}
 			alreadyExists = true;
 			break;
 		}	
 	}
 	if (!alreadyExists) {
+		var pos = 0;
+		var neg = 0;
+		if (classe === "positivo") {
+				pos ++;
+			}else{
+				neg ++;
+			}
 		scores.push({
 				estado: estado,
-				score: score
+				positivos: pos,
+				negativos: neg
 			});
 	}
 	
@@ -204,4 +214,41 @@ var convertCoordinates = function(coordArray){
 	}
 
 	return geolibArray;
+}
+
+var normalizePlace = function(state) {
+	if (state.toLowerCase() === "Amapa".toLowerCase()) {
+		return "Amapá";
+	}
+	if (state.toLowerCase() === "Ceara".toLowerCase()) {
+		return "Ceará";
+	}
+	if (state.toLowerCase() === "Espirito Santo".toLowerCase()) {
+		return "Espírito Santo";
+	}
+	if (state.toLowerCase() === "Goias".toLowerCase()) {
+		return "Goiás";
+	}
+	if (state.toLowerCase() === "Maranhao".toLowerCase()) {
+		return "Maranhão";
+	}
+	if (state.toLowerCase() === "Para".toLowerCase()) {
+		return "Pará";
+	}
+	if (state.toLowerCase() === "Paraiba".toLowerCase()) {
+		return "Paraíba";
+	}
+	if (state.toLowerCase() === "Parana".toLowerCase()) {
+		return "Paraná";
+	}
+	if (state.toLowerCase() === "Piaui".toLowerCase()) {
+		return "Piauí";
+	}
+	if (state.toLowerCase() === "Rondonia".toLowerCase()) {
+		return "Rondônia";
+	}
+	if (state.toLowerCase() === "Sao Paulo".toLowerCase()) {
+		return "São Paulo";
+	}
+	return state;
 }
