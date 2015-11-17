@@ -12,6 +12,7 @@ angular.module('clientApp')
   	
   	$scope.image = "http://mave.me/img/projects/full_placeholder.png";
   	$scope.search = "";
+    $scope.buscou = false;
 
 
    	$scope.convertDate = function(strDate){
@@ -20,12 +21,15 @@ angular.module('clientApp')
    	}
 
    	$scope.doRequest = function() {
+      $scope.buscou = true;
    		$http.get('http://127.0.0.1:3200/twitter/'+$scope.search).then(function successCallBack(response){
 	   		console.log('success');
 	   		$scope.tweets = response.data.data;
 	   		$scope.image = response.data.image;
+        $scope.buscou = false;
 	   	}, function errorCallback(response){
 	   		console.log('fail');
+        $scope.buscou = false;
 	   	});
    	}
   });
