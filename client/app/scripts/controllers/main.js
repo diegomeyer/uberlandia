@@ -26,7 +26,7 @@ angular.module('clientApp')
 
    	$scope.doRequest = function() {
       $scope.buscou = true;
-   		$http.get('http://127.0.0.1:3200/twitter/'+$scope.search).then(function successCallBack(response){
+   		$http.get('http://0fa42de6.ngrok.io/twitter/'+$scope.search).then(function successCallBack(response){
 	   		console.log('success');
 	   		$scope.tweets = response.data.data;
 	   		$scope.image = response.data.image;
