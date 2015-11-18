@@ -8,13 +8,17 @@
  * Controller of the clientApp
  */
 angular.module('clientApp')
-  .controller('MainCtrl', function ($scope, $http) {
+  .controller('MainCtrl', function ($scope, $http, Geojson) {
   	
   	$scope.image = "http://mave.me/img/projects/full_placeholder.png";
   	$scope.search = "";
     $scope.buscou = false;
 
+    
 
+    Geojson.get().success(function(data) { 
+      $scope.mapa = data;
+    });
    	$scope.convertDate = function(strDate){
    		var date = new Date(strDate);
    		return date;
