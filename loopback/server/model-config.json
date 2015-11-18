@@ -31,11 +31,5 @@
   "Role": {
     "dataSource": "db",
     "public": false
-  },
-  "Tweet": {
-    "dataSource": "mongo",
-    "public": true,
-    "$promise": {},
-    "$resolved": true
   }
 }

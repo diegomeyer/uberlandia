@@ -1,5 +1,5 @@
 var url = require('url');
-var sentiment = require('sentiment')
+var sentiment = require('sentiment');
 var Twitter = require('twitter');
 var brasil = require('./brasil-reduzido');
 var geolib = require('geolib');
@@ -9,8 +9,9 @@ var geojson = brasil.geojson();
 var minScore = 0;
 var maxScore = 0;
 var scores = [];
-var destruir = "";
-var imageTheme = "";
+var map = [];
+var destruir = '';
+var imageTheme = '';
 
 var client = new Twitter({
   consumer_key: 'DdxyopTagiCxG3Je2SBQgzQj0',
@@ -27,15 +28,12 @@ exports.list = function (request, callBack) {
 	 	callBack(
 	 	{
 	 		data:filterJSON(response), 
-	 		estados:scores,
+	 		estados:map,
 	 		image:imageTheme,
-	 		escala: {
-	 			min: minScore,
-	 			max: maxScore
-	 		}
+	 		
 	 	});
 	 });
-}
+};
 
 
 var twitterSearch = function(query, callBack){
@@ -53,7 +51,7 @@ var twitterSearch = function(query, callBack){
 			console.log(error);
 		}
 	});
-}
+};
 
 var twitterStream = function(query) {
 
@@ -77,7 +75,7 @@ var twitterStream = function(query) {
 
 	  	}
 	});
-}
+};
 
 var filterJSON = function (json) {
 	var filteredArray = [];
@@ -148,6 +146,8 @@ var processScore = function(tweets){
 		var score = tweets[i].classe;
 		updateScores(state,score);
 	};
+
+	map = normalizeScores(scores);
 }
 
 var normalizeScore = function(max, min, score){
@@ -191,7 +191,7 @@ var updateScores = function(estado, classe){
 	if (!alreadyExists) {
 		var pos = 0;
 		var neg = 0;
-		if (classe === "positivo") {
+		if (classe === 'positivo') {
 				pos ++;
 			}else{
 				neg ++;
@@ -251,4 +251,38 @@ var normalizePlace = function(state) {
 		return "São Paulo";
 	}
 	return state;
+}
+
+var normalizeScores = function(json) {
+	var estados = [];
+    var maior = json[0].positivos + json[0].negativos;
+    var menor = json[0].positivos + json[0].negativos;
+
+    for (var i = 0; i < json.length; i++) {
+
+        var nome = json[i].estado;
+        var sentiment = json[i].positivos + json[i].negativos;
+
+        var estado = {
+            "estado": nome,
+            "sentiment": sentiment 
+        }
+        estados.push(estado);
+        
+        if (estados[i].sentiment > maior) {
+            maior = estados[i].sentiment;
+        } else if (estados[i].sentiment < menor) {
+            menor = estados[i].sentiment;
+        };
+    };
+
+    for (var i = estados.length - 1; i >= 0; i--) {
+        if (estados[i].sentiment >= 0) {
+            estados[i].sentiment = (estados[i].sentiment/maior)*100;
+        } else 
+            estados[i].sentiment = (estados[i].sentiment/(menor*-1))*100;        
+    };
+
+    JSON.stringify(estados);
+    return estados;
 }
