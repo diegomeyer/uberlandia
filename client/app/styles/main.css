@@ -72,28 +72,11 @@ body {
   margin-top: 28px;
 }
 
-/* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
-  .container {
-    max-width: 730px;
-  }
-
-  /* Remove the padding we set earlier */
-  .header,
-  .marketing,
-  .footer {
-    padding-left: 0;
-    padding-right: 0;
-  }
-  /* Space out the masthead */
-  .header {
-    margin-bottom: 30px;
-  }
-  /* Remove the bottom border on the jumbotron for visual effect */
-  .jumbotron {
-    border-bottom: 0;
-  }
+#map{
+  position: fixed;
+  height: 100%;
 }
+/* Responsive: Portrait tablets and up */
 
 .circular {
   width: 60px;
@@ -135,6 +118,7 @@ body {
     width:450px;
     padding-right:15px;
     z-index: 0;
+    position: relative;
   }
 
   .theme {
@@ -156,11 +140,71 @@ body {
   .feed {
     position: absolute;
     width:460px;
-    margin: 15px;
+    margin-left: 15px;
     z-index: 2;
-    height: 580px;
+    height: auto;
     overflow-x: hidden; 
     overflow-y: hidden;
   }
 
+.twets{
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 620px;
+}
 
+[ng-click],[data-ng-click],[x-ng-click]{
+  cursor:pointer;
+}
+
+.leaflet-control{
+   position: absolute;
+    top: 0;
+    left: 470px;
+}
+.jquery-waiting-base-container {
+  position: absolute;
+  left: 0px;
+  top:0px;
+  margin:0px;
+  width: 100%;
+  height: 100%;
+  display:block;
+  z-index: 9999997;
+  opacity: 0.65;
+  -moz-opacity: 0.65;
+  filter: alpha(opacity = 65);
+  background: black;
+  background-image: url("../images/ajax-loader.gif");
+  background-repeat: no-repeat;
+  background-position:50% 50%;
+  text-align: center;
+  overflow: hidden;
+  font-weight: bold;
+  color: white;
+  padding-top: 25%;
+}
+@media screen and (max-width: 768px) {
+  .container {
+    max-width: 730px;
+  }
+
+  /* Remove the padding we set earlier */
+  .header,
+  .marketing,
+  .footer {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  /* Space out the masthead */
+  .header {
+    margin-bottom: 30px;
+  }
+  /* Remove the bottom border on the jumbotron for visual effect */
+  .jumbotron {
+    border-bottom: 0;
+  }
+  .twets{
+    height: 350px !important;
+  }
+}

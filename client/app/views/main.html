@@ -1,12 +1,13 @@
-
+<div class="jquery-waiting-base-container" ng-show="buscou">Carregando </div>
 <div class="feed">
 <div class="input-group busca">
-  <input type="text" class="form-control" placeholder="O que você busca?" aria-describedby="basic-addon2" ng-model="search">
-  <span class="input-group-addon" id="basic-addon2" ng-click="doRequest()">Pesquisar</span>
+  <input type="text" class="form-control" style="width: 75%" placeholder="O que você busca?" aria-describedby="basic-addon2" ng-model="search">
+  <button type="button" class="btn btn-primary" ng-click="doRequest()"><span class="glyphicon glyphicon-search"></span>  Pesquisar</button>
 </div>
+<div class="twets" ng-show="tweets">
 <div class="capa">
-  <img class="capa" ng-show="tweets" ng-src="{{image}}"/>
-  <label class="theme" ng-show="tweets">{{search}}</label>
+  <img class="capa"  ng-src="{{image}}"/>
+  <label class="theme" >{{search}}</label>
 </div>
 <div class="row tweet" ng-repeat="tweet in tweets">
   <div class="col col-sm-3" >
@@ -23,6 +24,7 @@
       <label class="{{tweet.classe}}">{{tweet.classe }}</label>
     </div>
   </div>
+</div>
 </div>
 </div>
 <link rel="stylesheet" href="./mapa_files/leaflet.css">
@@ -66,7 +68,7 @@
 
 <div id="map"></div>
 <script src="./mapa_files/leaflet.js"></script>
-
+<script type="text/javascript" src="./mapa_files/jquery.waiting.js"></script>
   <script type="text/javascript" src="./mapa_files/us-states.js"></script>
   <script type="text/javascript">
 
