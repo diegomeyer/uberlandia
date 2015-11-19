@@ -12,42 +12,74 @@ var scores = [];
 var map = [];
 var destruir = '';
 var imageTheme = '';
+var tweetsArray = [];
+var pageCounter = 5;
 
 var client = new Twitter({
-  consumer_key: 'DdxyopTagiCxG3Je2SBQgzQj0',
-  consumer_secret: 'FeDfrBkCVKdhnQBSzdksELac0iZqoe6vTitfGZ2eslSzHEXfkb',
-  access_token_key: '154909777-S5fPVWEFzWdXXXLMpqETvDJaSoK9hNGVV28ChEoR',
-  access_token_secret: 'MUxUC9Lvi3u5xEWJHCWz78qgQ9N4whGaYtHaqQQ0mKtjk'
+	consumer_key: 'DdxyopTagiCxG3Je2SBQgzQj0',
+	consumer_secret: 'FeDfrBkCVKdhnQBSzdksELac0iZqoe6vTitfGZ2eslSzHEXfkb',
+	access_token_key: '154909777-S5fPVWEFzWdXXXLMpqETvDJaSoK9hNGVV28ChEoR',
+	access_token_secret: 'MUxUC9Lvi3u5xEWJHCWz78qgQ9N4whGaYtHaqQQ0mKtjk'
 });
 
-exports.list = function (request, callBack) {
+exports.list = function(request, callBack) {
 	var query = request.params.query;
 	var array = [];
 
-	 twitterSearch(query, function(response){
-	 	callBack(
-	 	{
-	 		data:filterJSON(response), 
-	 		estados:map,
-	 		image:imageTheme,
-	 		
-	 	});
-	 });
+	twitterSearch(query, function(response) {
+		callBack({
+			data: tweetsArray,
+			estados: map,
+			image: imageTheme,
+
+		});
+	});
 };
 
 
-var twitterSearch = function(query, callBack){
+var twitterSearch = function(query, callBack) {
+	searchImage(query, function(image) {
+		imageTheme = image.url;
+	});
 
-	client.get('search/tweets', {q: query, count:100, geocode:'-14.3204892,-41.676742,2500km'}, function(error, tweets, response){
+	var nextMaxId;
+
+	client.get('search/tweets', {
+		q: query,
+		count: 100,
+		geocode: '-14.3204892,-41.676742,2500km'
+	}, function(error, tweets, response) {
+
 		if (!error) {
-			// twitterStream(query);
-			searchImage(query, function(image){
-				console.dir(image.url);
-				imageTheme = image.url;
-				callBack(tweets);
-			});
 
-		}else{
+			tweetsArray.push(filterJSON(tweets));
+			nextMaxId = tweets.search_metadata.nextMaxId;
+			console.log('Passou 1 vez: '+nextMaxId);
+
+			for (var i = 0; i < pageCounter.length; i++) {
+
+				client.get('search/tweets', {
+					q: query,
+					max_id: nextMaxId,
+					geocode: '-14.3204892,-41.676742,2500km'
+				}, function(error, nexttweets, response) {
+					if (!error) {
+						// twitterStream(query);
+						tweetsArray.push(filterJSON(nexttweets));
+						try {
+							nextMaxId = nexttweets.search_metadata.nextMaxId;
+						}catch(err){
+							callBack();
+						}
+						console.log('Passou ' + i+' vez: '+nextMaxId);
+					} else {
+						console.log(error);
+					}
+				});
+			};
+
+
+		} else {
 			console.log(error);
 		}
 	});
@@ -60,33 +92,35 @@ var twitterStream = function(query) {
 	 * number of tweets per second depends on topic popularity
 	 **/
 
-	client.stream('statuses/filter', {track: query},  function(stream){
-	  	stream.on('data', function(tweet) {
-	    	console.log(tweet.text);
-	  	});
+	client.stream('statuses/filter', {
+		track: query
+	}, function(stream) {
+		stream.on('data', function(tweet) {
+			console.log(tweet.text);
+		});
 
-	  	stream.on('error', function(error) {
-	    	console.log(error);
-	 	});
+		stream.on('error', function(error) {
+			console.log(error);
+		});
 
-	  	if (destruir !== query) {
-	  		destruir = query;
-	  		stream.destroy;
+		if (destruir !== query) {
+			destruir = query;
+			stream.destroy;
 
-	  	}
+		}
 	});
 };
 
-var filterJSON = function (json) {
+var filterJSON = function(json) {
 	var filteredArray = [];
 	debugger;
 	var min = 0;
 	var max = 0;
 
 
-	for(var i = 0; i < json.statuses.length; i++){
+	for (var i = 0; i < json.statuses.length; i++) {
 		var tweet = json.statuses[i];
-		
+
 		if (tweet.coordinates !== null) {
 			var classifier = sentiment(tweet.text);
 			var score = classifier.score;
@@ -96,7 +130,7 @@ var filterJSON = function (json) {
 				var fullName = place.full_name;
 				var cityState = fullName.split(/, (.+)?/);
 
-				
+
 
 				if (cityState[1] !== undefined) {
 					var state = normalizePlace(cityState[1]);
@@ -105,21 +139,19 @@ var filterJSON = function (json) {
 						state = city;
 					}
 
-					filteredArray.push(
-						{
-							"text":tweet.text,
-							"created_at":tweet.created_at,
-							"image": tweet.user.profile_image_url,
-							"score": classifier.comparative,
-							"classe": classify(score),
-							"place": {
-								"state": state
-							}
+					filteredArray.push({
+						"text": tweet.text,
+						"created_at": tweet.created_at,
+						"image": tweet.user.profile_image_url,
+						"score": classifier.comparative,
+						"classe": classify(score),
+						"place": {
+							"state": state
 						}
-					);
+					});
 				}
 
-				
+
 			}
 		}
 	}
@@ -128,40 +160,40 @@ var filterJSON = function (json) {
 
 }
 
-var searchImage = function(image, callBack){
-	google.search(image , function(err, images){
-		if(!err){
+var searchImage = function(image, callBack) {
+	google.search(image, function(err, images) {
+		if (!err) {
 			callBack(images[0]);
-		}else{
+		} else {
 			callBack("");
 		}
 	});
 
 }
 
-var processScore = function(tweets){
+var processScore = function(tweets) {
 	scores = [];
 	for (var i = 0; i < tweets.length; i++) {
 		var state = tweets[i].place.state;
 		var score = tweets[i].classe;
-		updateScores(state,score);
+		updateScores(state, score);
 	};
 
 	map = normalizeScores(scores);
 }
 
-var normalizeScore = function(max, min, score){
+var normalizeScore = function(max, min, score) {
 	var range = 0;
-	if (min*max < 0) {
+	if (min * max < 0) {
 		range = Math.abs(min) + Math.abs(max);
 		score += Math.abs(min);
-	}else{
+	} else {
 		range = Math.abs(max) - Math.abs(min);
 		score -= Math.abs(min);
 
 	}
 
-	return (100/range)*score;
+	return (100 / range) * score;
 }
 
 var classify = function(score) {
@@ -175,42 +207,45 @@ var classify = function(score) {
 
 
 
-var updateScores = function(estado, classe){
+var updateScores = function(estado, classe) {
 	var alreadyExists = false;
 	for (var i = 0; i < scores.length; i++) {
 		if (scores[i].estado === estado) {
 			if (classe === 'positivo') {
-				scores[i].positivos ++;
-			}else{
-				scores[i].negativos ++;
+				scores[i].positivos++;
+			} else {
+				scores[i].negativos++;
 			}
 			alreadyExists = true;
 			break;
-		}	
+		}
 	}
 	if (!alreadyExists) {
 		var pos = 0;
 		var neg = 0;
 		if (classe === 'positivo') {
-				pos ++;
-			}else{
-				neg ++;
-			}
+			pos++;
+		} else {
+			neg++;
+		}
 		scores.push({
-				estado: estado,
-				positivos: pos,
-				negativos: neg
-			});
+			estado: estado,
+			positivos: pos,
+			negativos: neg
+		});
 	}
-	
+
 
 }
 
-var convertCoordinates = function(coordArray){
+var convertCoordinates = function(coordArray) {
 	geolibArray = []
-	for(var i = 0; i < coordArray.length; i ++){
+	for (var i = 0; i < coordArray.length; i++) {
 		point = coordArray[i];
-		geolibArray.push({latitude: parseFloat(point[0]), longitude: parseFloat(point[1])})
+		geolibArray.push({
+			latitude: parseFloat(point[0]),
+			longitude: parseFloat(point[1])
+		})
 	}
 
 	return geolibArray;
@@ -255,34 +290,33 @@ var normalizePlace = function(state) {
 
 var normalizeScores = function(json) {
 	var estados = [];
-    var maior = json[0].positivos + json[0].negativos;
-    var menor = json[0].positivos + json[0].negativos;
+	var maior = json[0].positivos - json[0].negativos;
+	var menor = json[0].positivos - json[0].negativos;
 
-    for (var i = 0; i < json.length; i++) {
+	for (var i = 0; i < json.length; i++) {
 
-        var nome = json[i].estado;
-        var sentiment = json[i].positivos + json[i].negativos;
+		var nome = json[i].estado;
+		var sentiment = json[i].positivos - json[i].negativos;
 
-        var estado = {
-            "estado": nome,
-            "sentiment": sentiment 
-        }
-        estados.push(estado);
-        
-        if (estados[i].sentiment > maior) {
-            maior = estados[i].sentiment;
-        } else if (estados[i].sentiment < menor) {
-            menor = estados[i].sentiment;
-        };
-    };
+		var estado = {
+			"estado": nome,
+			"sentiment": sentiment
+		}
+		estados.push(estado);
 
-    for (var i = estados.length - 1; i >= 0; i--) {
-        if (estados[i].sentiment >= 0) {
-            estados[i].sentiment = (estados[i].sentiment/maior)*100;
-        } else 
-            estados[i].sentiment = (estados[i].sentiment/(menor*-1))*100;        
-    };
+		if (estados[i].sentiment > maior) {
+			maior = estados[i].sentiment;
+		} else if (estados[i].sentiment < menor) {
+			menor = estados[i].sentiment;
+		};
+	};
 
-    JSON.stringify(estados);
-    return estados;
+	for (var i = estados.length - 1; i >= 0; i--) {
+		if (estados[i].sentiment >= 0) {
+			estados[i].sentiment = ((estados[i].sentiment / maior) * 100).toString();
+		} else
+			estados[i].sentiment = ((estados[i].sentiment / (menor * -1)) * 100).toString();
+	};
+
+	return estados;
 }
