@@ -34,7 +34,7 @@ angular.module('clientApp')
         console.log('success');
         $scope.tweets = response.data.data;
         $scope.image = response.data.image;
-
+        $scope.theme = $scope.search;
         var estados = response.data.estados;
 
         for (var i = 0; i < $scope.geojson.features.length; i++) {
@@ -127,7 +127,7 @@ angular.module('clientApp')
         d <= -40 && d >= -59 ? '#FF6600 ' :
         d <= -60 && d >= -79 ? '#FF5613' :
         d <= -80 && d >= -99 ? '#FE3333' :
-        d === -100 ? '#880000' :
+        d <= -100 ? '#880000' :
         '#D3CDCD';
     }
 
