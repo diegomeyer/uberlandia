@@ -30,6 +30,9 @@ body {
   padding-right: 15px;
 }
 
+.leaflet-control{
+ left: 0;
+}
 /* Custom page header */
 .header {
   border-bottom: 1px solid #e5e5e5;
@@ -42,7 +45,9 @@ body {
   line-height: 40px;
   padding-bottom: 19px;
 }
-
+.leaflet-control-attribution .leaflet-control{
+  display:none;
+}
 /* Custom page footer */
 .footer {
   padding-top: 19px;
@@ -72,10 +77,6 @@ body {
   margin-top: 28px;
 }
 
-#map{
-  position: fixed;
-  height: 100%;
-}
 /* Responsive: Portrait tablets and up */
 
 .circular {

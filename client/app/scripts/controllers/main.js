@@ -28,6 +28,7 @@ angular.module('clientApp')
         onEachFeature: onEachFeature
       }).addTo(map);
     });
+
     $scope.doRequest = function() {
       $scope.buscou = true;
       $http.get('http://127.0.0.1:3000/twitter/' + $scope.search).then(function successCallBack(response) {
@@ -60,9 +61,6 @@ angular.module('clientApp')
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IjZjNmRjNzk3ZmE2MTcwOTEwMGY0MzU3YjUzOWFmNWZhIn0.Y8bhBaUMqFiPrDRW9hieoQ', {
       maxZoom: 18,
-      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-        '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-        'Imagery © <a href="http://mapbox.com">Mapbox</a>',
       id: 'mapbox.light'
     }).addTo(map);
 
@@ -77,8 +75,8 @@ angular.module('clientApp')
     };
 
     info.update = function(props) {
-      this._div.innerHTML = '<h4>US Population Density</h4>' + (props ?
-        '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>' : 'Hover over a state');
+      this._div.innerHTML = '<h4>Sentimento</h4>' + (props ?
+        '<b>' + props.name + '</b><br />' + props.sentiment + ' ' : 'Selecione o estado');
     };
 
     info.addTo(map);
@@ -92,7 +90,7 @@ angular.module('clientApp')
     legend.onAdd = function(map) {
 
       var div = L.DomUtil.create('div', 'info legend'),
-        grades = [100, 80, 60, 40, 20, 0, -20, -40, -60, -80, -1],
+        grades = [100, 80, 60, 40, 20, 0, -20, -40, -60, -80, -100],
         labels = [],
         from, to;
 
@@ -177,7 +175,4 @@ angular.module('clientApp')
         click: zoomToFeature
       });
     }
-
-
-
-  });
+});
