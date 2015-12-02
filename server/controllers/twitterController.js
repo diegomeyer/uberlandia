@@ -1,8 +1,7 @@
 
 var sentiment = require('sentiment');
 var Twitter = require('twitter');
-var google = require('google-images');
-
+var bing = require('./bingController.js');
 var scores = [];
 var map = [];
 var imageTheme = '';
@@ -19,7 +18,9 @@ var client = new Twitter({
 exports.list = function(request, callBack) {
 	var query = request.params.query;
 	var array = [];
+	bing.getImage('bolsonaro', function(){
 
+	});
 	twitterSearch(query, function(response) {
 		callBack({
 			data: filterJSON(response),
@@ -32,11 +33,6 @@ exports.list = function(request, callBack) {
 
 
 var twitterSearch = function(query, callBack) {
-	searchImage(query, function(image) {
-		imageTheme = image.url;
-	});
-
-
 
 	client.get('search/tweets', {
 		q: query,
@@ -45,10 +41,11 @@ var twitterSearch = function(query, callBack) {
 	}, function(error, tweets, response) {
 
 		if (!error) {
-			searchImage(query, function(image) {
-				imageTheme = image.url;
+			bing.getImage(query, function(image){
+				imageTheme = image;
 				callBack(tweets);
 			});
+			
 		} else {
 			console.log(error);
 		}
@@ -102,17 +99,6 @@ var filterJSON = function(json) {
 	}
 	processScore(filteredArray);
 	return filteredArray;
-
-}
-
-var searchImage = function(image, callBack) {
-	google.search(image, function(err, images) {
-		if (!err) {
-			callBack(images[0]);
-		} else {
-			callBack("");
-		}
-	});
 
 }
 

@@ -67,7 +67,7 @@ app.use(function(err, req, res, next) {
 });
 
 app.set('port', process.env.PORT || 3000);
-var server = app.listen(app.get('port'),'0.0.0.0', function() {
+var server = app.listen(app.get('port'),'127.0.0.1', function() {
   console.log('Express server listening on port ' + server.address().port);
 
 });
