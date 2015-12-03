@@ -31,7 +31,7 @@ angular.module('clientApp')
 
     $scope.doRequest = function() {
       $scope.buscou = true;
-      $http.get('http://127.0.0.1:3000/twitter/' + $scope.search).then(function successCallBack(response) {
+      $http.get('http://127.0.0.1:3000/twitter?service=WPS&Request=Execute&Version=MinVersion&DataInputs=' + $scope.search).then(function successCallBack(response) {
         console.log('success');
         $scope.tweets = response.data.data;
         $scope.image = response.data.image;

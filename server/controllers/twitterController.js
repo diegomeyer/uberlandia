@@ -17,7 +17,8 @@ var client = new Twitter({
 });
 
 exports.list = function(request, callBack) {
-	var query = request.params.query;
+	var query = request.query.DataInputs;
+	
 	var array = [];
 
 	twitterSearch(query, function(response) {
