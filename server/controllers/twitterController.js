@@ -1,7 +1,6 @@
 var sentiment = require('sentiment');
 var Twitter = require('twitter');
 var bing = require('./bingController.js');
-var classify = require('../sentiment_analysis/classify.js');
 
 
 var scores = [];
@@ -20,13 +19,12 @@ var client = new Twitter({
 exports.list = function(request, callBack) {
 	var query = request.params.query;
 	var array = [];
-	bing.getImage('bolsonaro', function() {
 
-	});
 	twitterSearch(query, function(response) {
 
 		filterJSON(response, function(parsedData) {
-			parsedData
+		
+
 			callBack({
 				data: parsedData,
 				estados: map,
@@ -65,59 +63,68 @@ var filterJSON = function(json, callBack) {
 	var min = 0;
 	var max = 0;
 
-	var texts = getTweets(json.statuses);
-	classify.classifyArray(texts, 'pt-br', 'en', function(error, classifiedArray) {
-		if (error) {
-			console.log('erro tradutor')
-			callBack(error);
-		} else {
+	
 
-			for (var i = 0; i < json.statuses.length; i++) {
-				var tweet = json.statuses[i];
+	for (var i = 0; i < json.statuses.length; i++) {
+		var tweet = json.statuses[i];
 
-				if (tweet.coordinates !== null) {
+		if (tweet.coordinates !== null) {
 
 
-					var place = tweet.place;
-					if (place !== null && place.country_code === 'BR') {
-						var fullName = place.full_name;
-						var cityState = fullName.split(/, (.+)?/);
+			var place = tweet.place;
+			if (place !== null && place.country_code === 'BR') {
+				var fullName = place.full_name;
+				var cityState = fullName.split(/, (.+)?/);
 
-						//var classifier = sentiment(tweet.text);
-						var score = convertToNumber(classifiedArray(i));
-						//var score = classifier.score;
-
-						if (cityState[1] !== undefined) {
-							var state = normalizePlace(cityState[1]);
-							var city = normalizePlace(cityState[0]);
-							if (state === 'Brazil' || state === 'Brasil') {
-								state = city;
-							}
-
-							filteredArray.push({
-								"text": tweet.text,
-								"created_at": tweet.created_at,
-								"image": tweet.user.profile_image_url,
-								"score": classifier.comparative,
-								"classe": classifiedArray(i),
-								"place": {
-									"state": state
-								}
-							});
-						}
-
-
+				if (cityState[1] !== undefined) {
+					var state = normalizePlace(cityState[1]);
+					var city = normalizePlace(cityState[0]);
+					if (state === 'Brazil' || state === 'Brasil') {
+						state = city;
 					}
+					filteredArray.push({
+						"text": tweet.text,
+						"created_at": tweet.created_at,
+						"image": tweet.user.profile_image_url,
+						"classe": 'negativo',
+						"place": {
+							"state": state
+						}
+					});
 				}
+
+
 			}
-
-			processScore(filteredArray);
-			callBack(filteredArray);
 		}
-	});
+	}
 
+	var texts = getTweets(filteredArray);
+	console.log(texts);
 
+	var indico = require('indico.io')
+	indico.apiKey = "389764c8f9ac9eb51c6e2d88ab6ad3e1"; 
+	indico.batchSentiment(texts).then(function(res){
+    	
+
+    	for (var i = 0; i < filteredArray.length; i ++){
+    		if (res[i] >= 0.5) {
+    			filteredArray[i].classe = 'positivo'
+    			console.log(filteredArray[i].classe);
+    			console.log(res[i]);
+    		}
+    	}
+
+    	processScore(filteredArray);
+    	callBack(filteredArray);
+    }).catch(function(err){
+    	console.log('indigo err: ', err);
+    	map = [];
+    	imageTheme = "https://cdn2.iconfinder.com/data/icons/windows-8-metro-style/512/sad.png";
+    	callBack(filteredArray);
+    });
+    
 }
+
 
 var getTweets = function(tweets) {
 
@@ -131,20 +138,12 @@ var getTweets = function(tweets) {
 	return msg;
 }
 
-var convertToNumber = function(score) {
-	if (score === 'positivo') {
-		return 1;
-	} else {
-		return 0;
-	}
-}
 
 var processScore = function(tweets) {
 	scores = [];
 	for (var i = 0; i < tweets.length; i++) {
 		var state = tweets[i].place.state;
 		var score = tweets[i].classe;
-		console.log(score);
 		updateScores(state, score);
 	};
 
@@ -182,7 +181,7 @@ var updateScores = function(estado, classe) {
 	for (var i = 0; i < scores.length; i++) {
 
 		if (scores[i].estado === estado) {
-			if (classe === 'positive') {
+			if (classe === 'positivo') {
 				scores[i].positivos++;
 			} else {
 				scores[i].negativos++;
@@ -274,7 +273,7 @@ var normalizeScores = function(json) {
 		if (estados[i].sentiment >= 0) {
 			estados[i].sentiment = ((estados[i].sentiment / maior) * 100).toString();
 		} else
-			estados[i].sentiment = ((estados[i].sentiment / (menor * -1)) * 100).toString();
+		estados[i].sentiment = ((estados[i].sentiment / (menor * -1)) * 100).toString();
 	};
 
 	return estados;

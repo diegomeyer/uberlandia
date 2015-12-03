@@ -11,6 +11,7 @@
     "debug": "~2.2.0",
     "express": "~4.13.1",
     "google-images": "^0.1.4",
+    "indico.io": "^0.4.6",
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
     "node-bing-api": "^2.3.0",
