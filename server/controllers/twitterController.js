@@ -40,7 +40,7 @@ exports.list = function(request, callBack) {
 var twitterSearch = function(query, callBack) {
 
 	client.get('search/tweets', {
-		q: query,
+		q: query + " -link",
 		count: 100,
 		geocode: '-14.3204892,-41.676742,2500km'
 	}, function(error, tweets, response) {
@@ -88,6 +88,7 @@ var filterJSON = function(json, callBack) {
 						"created_at": tweet.created_at,
 						"image": tweet.user.profile_image_url,
 						"classe": 'negativo',
+						"coordenadas" : tweet.coordinates.coordinates,
 						"place": {
 							"state": state
 						}
@@ -251,15 +252,18 @@ var normalizeScores = function(json) {
 	var estados = [];
 	var maior = json[0].positivos - json[0].negativos;
 	var menor = json[0].positivos - json[0].negativos;
+	var totalBrasil = json.length;
 
 	for (var i = 0; i < json.length; i++) {
 
 		var nome = json[i].estado;
 		var sentiment = json[i].positivos - json[i].negativos;
 
+
 		var estado = {
 			"estado": nome,
-			"sentiment": sentiment
+			"sentiment": sentiment,
+			"quantidade": json[i].positivos + json[i].negativos
 		}
 		estados.push(estado);
 
@@ -271,10 +275,14 @@ var normalizeScores = function(json) {
 	};
 
 	for (var i = estados.length - 1; i >= 0; i--) {
+		var totalEstado = json[i].positivos + json[i].negativos;
+		
 		if (estados[i].sentiment >= 0) {
-			estados[i].sentiment = ((estados[i].sentiment / maior) * 100).toString();
-		} else
-		estados[i].sentiment = ((estados[i].sentiment / (menor * -1)) * 100).toString();
+			estados[i].sentiment = (((estados[i].sentiment / maior) * 100 )/(1/totalEstado)).toString();
+		} else{
+			estados[i].sentiment = (((estados[i].sentiment / (menor * -1)) * 100)/(1/totalEstado)).toString();
+		}
+		
 	};
 
 	return estados;

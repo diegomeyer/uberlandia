@@ -30,7 +30,7 @@ var getCapabilities = {
   "service": "Uberlandia",
   "version": "0.7",
   "lang": "pt-br",
-  "service_identification": "Metadata about the server",
+  "service_identification": "twitter, mapa, geolocalização, sentimento, redes neurais, brasil, positivo, negativo",
   "service_provider": "Diego Meyer, Guilherme Nardari, Renato Borella, Willian Fagner",
   "operations_metadata": {
     "describeProcess": "http://foo.bar/twitter?service=WPS&Request=DescribeProcess&Version=MinVersion&Identifier=",
