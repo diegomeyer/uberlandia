@@ -1,0 +1,5 @@
+{
+  "InputType": "String",
+  "Output": "JSON",
+  "Description": "Usa a API do Twitter para pesquisar o tópico definidor pelo parâmetro DataInputs e faz analise de sentimento dos dados, retornando um JSON com o coeficiente de opinião de determinada região"
+}

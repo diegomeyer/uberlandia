@@ -1,0 +1,17 @@
+{
+  "service": "Uberlandia",
+  "version": "0.7",
+  "lang": "pt-br",
+  "service_identification": "Metadata about the server",
+  "service_provider": "Diego Meyer, Guilherme Nardari, Renato Borella, Willian Fagner",
+  "operations_metadata": {
+    "describeProcess": "http://foo.bar/foo?service=WPS&Request=DescribeProcess&Version=MinVersion&Identifier=",
+    "Execute": "http://foo.bar/foo?service=WPS&Request=Execute&Version=MinVersion&DataInputs=String"
+  },
+  "process_offerings": {
+    "describeProcess": "Retorna a descrição de um processo como JSON",
+    "Execute": "Executa o serviço usando o parâmetro DataInputs, retorna um JSON"
+  },
+  "languages": ["pt-br"]
+}
+
