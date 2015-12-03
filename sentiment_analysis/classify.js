@@ -1,7 +1,7 @@
 var MsTranslator = require('mstranslator');
 var bayes = require('bayes')
 
-var classifyArray = function classifyArray(input_array, lang, translateTo, callback) {
+var classifyArray = function classifyArray(input_array, lang, translateTo, callback, errorCallBack) {
     
     var stateJson = require('./naivebayes.json');
     var classifier = bayes.fromJson(stateJson);
@@ -17,17 +17,14 @@ var classifyArray = function classifyArray(input_array, lang, translateTo, callb
       , to: translateTo
     };
 
-    var data;
+    var data = new Array();
     var resultado = new Array();
 
     client.translateArray(params, function(err, data) {
-        data.forEach(function(phrase) {
-            console.log(phrase.TranslatedText);
-            console.log(classifier.categorize(String(phrase.TranslatedText)));
-            resultado.push(classifier.categorize(String(phrase.TranslatedText)));
-        });
-
-        callback(resultado);
+      console.log("HAHAHAHAHAHA");
+      return;
+      
+      
     });
 
 }

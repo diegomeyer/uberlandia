@@ -1,7 +1,9 @@
-
 var sentiment = require('sentiment');
 var Twitter = require('twitter');
 var bing = require('./bingController.js');
+var classify = require('../sentiment_analysis/classify.js');
+
+
 var scores = [];
 var map = [];
 var imageTheme = '';
@@ -18,16 +20,20 @@ var client = new Twitter({
 exports.list = function(request, callBack) {
 	var query = request.params.query;
 	var array = [];
-	bing.getImage('bolsonaro', function(){
+	bing.getImage('bolsonaro', function() {
 
 	});
 	twitterSearch(query, function(response) {
-		callBack({
-			data: filterJSON(response),
-			estados: map,
-			image: imageTheme,
 
-		});
+		filterJSON(response, function(parsedData) {
+			parsedData
+			callBack({
+				data: parsedData,
+				estados: map,
+				image: imageTheme,
+
+			});
+		})
 	});
 };
 
@@ -41,11 +47,11 @@ var twitterSearch = function(query, callBack) {
 	}, function(error, tweets, response) {
 
 		if (!error) {
-			bing.getImage(query, function(image){
+			bing.getImage(query, function(image) {
 				imageTheme = image;
 				callBack(tweets);
 			});
-			
+
 		} else {
 			console.log(error);
 		}
@@ -53,53 +59,84 @@ var twitterSearch = function(query, callBack) {
 };
 
 
-var filterJSON = function(json) {
+var filterJSON = function(json, callBack) {
 	var filteredArray = [];
 	debugger;
 	var min = 0;
 	var max = 0;
 
+	var texts = getTweets(json.statuses);
+	classify.classifyArray(texts, 'pt-br', 'en', function(error, classifiedArray) {
+		if (error) {
+			console.log('erro tradutor')
+			callBack(error);
+		} else {
 
-	for (var i = 0; i < json.statuses.length; i++) {
-		var tweet = json.statuses[i];
+			for (var i = 0; i < json.statuses.length; i++) {
+				var tweet = json.statuses[i];
 
-		if (tweet.coordinates !== null) {
-			var classifier = sentiment(tweet.text);
-			var score = classifier.score;
-
-			var place = tweet.place;
-			if (place !== null && place.country_code === 'BR') {
-				var fullName = place.full_name;
-				var cityState = fullName.split(/, (.+)?/);
-
+				if (tweet.coordinates !== null) {
 
 
-				if (cityState[1] !== undefined) {
-					var state = normalizePlace(cityState[1]);
-					var city = normalizePlace(cityState[0]);
-					if (state === 'Brazil' || state === 'Brasil') {
-						state = city;
-					}
+					var place = tweet.place;
+					if (place !== null && place.country_code === 'BR') {
+						var fullName = place.full_name;
+						var cityState = fullName.split(/, (.+)?/);
 
-					filteredArray.push({
-						"text": tweet.text,
-						"created_at": tweet.created_at,
-						"image": tweet.user.profile_image_url,
-						"score": classifier.comparative,
-						"classe": classify(score),
-						"place": {
-							"state": state
+						//var classifier = sentiment(tweet.text);
+						var score = convertToNumber(classifiedArray(i));
+						//var score = classifier.score;
+
+						if (cityState[1] !== undefined) {
+							var state = normalizePlace(cityState[1]);
+							var city = normalizePlace(cityState[0]);
+							if (state === 'Brazil' || state === 'Brasil') {
+								state = city;
+							}
+
+							filteredArray.push({
+								"text": tweet.text,
+								"created_at": tweet.created_at,
+								"image": tweet.user.profile_image_url,
+								"score": classifier.comparative,
+								"classe": classifiedArray(i),
+								"place": {
+									"state": state
+								}
+							});
 						}
-					});
+
+
+					}
 				}
-
-
 			}
-		}
-	}
-	processScore(filteredArray);
-	return filteredArray;
 
+			processScore(filteredArray);
+			callBack(filteredArray);
+		}
+	});
+
+
+}
+
+var getTweets = function(tweets) {
+
+	var msg = [];
+
+	tweets.forEach(function(tweet) {
+		var pureText = tweet.text;//.replace(/[^\w\s]/gi, '');
+		msg.push(pureText.replace(/(?:\r\n|\r|\n)/g, ' '));
+	});
+
+	return msg;
+}
+
+var convertToNumber = function(score) {
+	if (score === 'positivo') {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 var processScore = function(tweets) {
@@ -107,6 +144,7 @@ var processScore = function(tweets) {
 	for (var i = 0; i < tweets.length; i++) {
 		var state = tweets[i].place.state;
 		var score = tweets[i].classe;
+		console.log(score);
 		updateScores(state, score);
 	};
 
@@ -127,7 +165,7 @@ var normalizeScore = function(max, min, score) {
 	return (100 / range) * score;
 }
 
-var classify = function(score) {
+var classifyTeste = function(score) {
 	if (score <= 0) {
 		return 'negativo';
 
@@ -140,9 +178,11 @@ var classify = function(score) {
 
 var updateScores = function(estado, classe) {
 	var alreadyExists = false;
+
 	for (var i = 0; i < scores.length; i++) {
+
 		if (scores[i].estado === estado) {
-			if (classe === 'positivo') {
+			if (classe === 'positive') {
 				scores[i].positivos++;
 			} else {
 				scores[i].negativos++;
