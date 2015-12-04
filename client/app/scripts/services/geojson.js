@@ -18,4 +18,5 @@ angular.module('clientApp')
         return $http.get('../../geojson/brasil.geojson');
       }
     };
+    
   });

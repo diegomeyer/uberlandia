@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/scripts', express.static(__dirname + '/scripts/'));
 
-app.use('/', routes);
+app.use('/', twitter);
 app.use('/users', users);
 app.use('/twitter', twitter);
 

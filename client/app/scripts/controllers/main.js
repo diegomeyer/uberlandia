@@ -31,7 +31,7 @@ angular.module('clientApp')
 
     $scope.doRequest = function() {
       $scope.buscou = true;
-      $http.get('http://127.0.0.1:3000/twitter/' + $scope.search).then(function successCallBack(response) {
+      $http.get('http://127.0.0.1:3000/twitter?service=WPS&Request=Execute&Version=MinVersion&DataInputs=' + $scope.search).then(function successCallBack(response) {
         console.log('success');
         $scope.tweets = response.data.data;
         $scope.image = response.data.image;
@@ -43,12 +43,15 @@ angular.module('clientApp')
           for (var j = 0; j < estados.length; j++) {
             if (estados[j].estado === name) {
               $scope.geojson.features[i].properties.sentiment = estados[j].sentiment;
+              $scope.geojson.features[i].properties.quantidade = estados[j].quantidade;
             }
           };
 
         };
+
         geojson.clearLayers(); // inherited from LayerGroup
         geojson.addData($scope.geojson);
+
         $scope.buscou = false;
       }, function errorCallback(response) {
         console.log('fail');
@@ -76,7 +79,7 @@ angular.module('clientApp')
 
     info.update = function(props) {
       this._div.innerHTML = '<h4>Sentimento</h4>' + (props ?
-        '<b>' + props.name + '</b><br />' + props.sentiment + ' ' : 'Selecione o estado');
+        '<b>' + props.name + '</b><br />' + props.quantidade + ' ' : 'Selecione o estado');
     };
 
     info.addTo(map);
